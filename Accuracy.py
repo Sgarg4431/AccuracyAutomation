@@ -11,9 +11,9 @@ uploaded_file2 = st.file_uploader("Upload your Sales file here", type=["csv", "x
 uploaded_file3 = st.file_uploader("Upload your Live days file here", type=["csv", "xlsx"])
 
 def calculate_value(row):
-    M3 = row['Actual Sales']  # Actual Sales
-    N3 = row['ABS']           # ABS
-    L3 = row['Target Sales']  # Target Sales
+    M3 = row['Actual Sales']
+    N3 = row['ABS']
+    L3 = row['Target Sales']
 
     if M3 == 0 and N3 == 0:
         return 0
@@ -87,7 +87,7 @@ def processedFile(uploaded_file1, uploaded_file2, uploaded_file3):
             )
 
             if from_date and to_date:  # Ensure both dates are selected
-                if from_date > to_date:
+                if from_date >= to_date:
                     st.error("The 'From Date' must be earlier than or equal to the 'To Date'.")
                 else:
                     # Update session state with selected dates
