@@ -10,7 +10,6 @@ uploaded_file1 = st.file_uploader("Upload your Requirement file", type=["csv", "
 uploaded_file2 = st.file_uploader("Upload your Sales file here", type=["csv", "xlsx"])
 uploaded_file3 = st.file_uploader("Upload your Live days file here", type=["csv", "xlsx"])
 
-
 def calculate_value(row):
     M3 = row['Actual Sales']  # Actual Sales
     N3 = row['ABS']           # ABS
@@ -61,29 +60,43 @@ def processedFile(uploaded_file1, uploaded_file2, uploaded_file3):
         st.write(f"Available dates: {unique_dates[0].date()} to {unique_dates[-1].date()}")
 
         # Step 1: Select "From Date"
+        if "from_date" not in st.session_state:
+            st.session_state.from_date = None
+        if "to_date" not in st.session_state:
+            st.session_state.to_date = None
+        if "to_date_visible" not in st.session_state:
+            st.session_state.to_date_visible = False
+
         from_date = st.date_input(
             "From Date",
             min_value=unique_dates[0],
             max_value=unique_dates[-1],
-            value=unique_dates[0],
+            value=unique_dates[0] if st.session_state.from_date is None else st.session_state.from_date,
+            key="from_date",
+            on_change=lambda: st.session_state.update({"to_date_visible": True})
         )
 
-        if from_date:
+        if st.session_state.to_date_visible:
             # Step 2: Show "To Date" only after selecting "From Date"
             to_date = st.date_input(
                 "To Date",
                 min_value=from_date,
                 max_value=unique_dates[-1],
                 value=from_date,
+                key="to_date"
             )
 
             if from_date > to_date:
                 st.error("The 'From Date' must be earlier than or equal to the 'To Date'.")
             else:
-                # Step 3: Filter and process sales data
+                # Ensure that final processing happens only when both dates are selected
+                st.session_state.from_date = from_date
+                st.session_state.to_date = to_date
+
+                # Proceed with final processing
                 filtered_df = df_sales[
-                    (df_sales['day'] >= pd.Timestamp(from_date)) &
-                    (df_sales['day'] <= pd.Timestamp(to_date))
+                    (df_sales['day'] >= pd.Timestamp(st.session_state.from_date)) &
+                    (df_sales['day'] <= pd.Timestamp(st.session_state.to_date))
                 ]
 
                 pivot_sales = pd.pivot_table(filtered_df, index=['ean'], values=['quantity'], aggfunc='sum').reset_index()
