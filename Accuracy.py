@@ -85,7 +85,8 @@ def processedFile(uploaded_file1,uploaded_file2,uploaded_file3):
                     (df_sales['day'] >= pd.Timestamp(from_date)) & 
                     (df_sales['day'] <= pd.Timestamp(to_date))
                 ]
-                pivot_sales=pd.pivot_table(df_sales[filtered_df], index =['ean'],values=['quantity'],aggfunc='sum').reset_index()
+                df_sales=df_sales[filtered_df]
+                pivot_sales=pd.pivot_table(df_sales, index =['ean'],values=['quantity'],aggfunc='sum').reset_index()
                 df_final = pd.merge(df, pivot_sales, left_on='EAN', right_on='ean', how='left',indicator=True)
                 df_final.drop(columns=['ean','_merge'],inplace=True)
                 df_final.rename(columns={'quantity':'Actual Sales'},inplace=True)
