@@ -57,38 +57,34 @@ def processedFile(uploaded_file1,uploaded_file2,uploaded_file3):
         df['Projected sales with seasonality- 35 days']
         )
         df_sales=pd.read_excel(uploaded_file2)
-        date_column = st.text_input("Enter the name of the Date Column:")
-        if date_column:
-            if date_column in df_sales.columns:
-                print(date_column)
-                df[date_column] = pd.to_datetime(df_sales[date_column])
+        df_sales['day'] = pd.to_datetime(df_sales['day'], errors='coerce')
+        unique_dates = sorted(df_sales['day'].dropna().unique())
 
-    # Get the unique dates in the file and sort them
-                unique_dates = sorted(df_sales[date_column].dropna().unique())
-                st.write(f"Available dates: {unique_dates[0].date()} to {unique_dates[-1].date()}")
-
-    # Calendar pop-up for date selection
-                from_date = st.date_input(
-                "From Date", 
-                min_value=unique_dates[0], 
-                max_value=unique_dates[-1], 
-                value=unique_dates[0]
-                )
-
-                to_date = st.date_input(
-                "To Date", 
-                min_value=unique_dates[0], 
-                max_value=unique_dates[-1], 
-                value=unique_dates[-1]
-                )
-
-    # Ensure the "From Date" is earlier than or equal to the "To Date"
+        # Display the available date range
+        st.write(f"Available dates: {unique_dates[0].date()} to {unique_dates[-1].date()}")
+        from_date = st.date_input(
+            "From Date",
+            min_value=unique_dates[0],
+            max_value=unique_dates[-1],
+            value=unique_dates[0],
+        )
+        if from_date:
+            to_date = st.date_input(
+                "To Date",
+                min_value=from_date,  # Start from the selected "From Date"
+                max_value=unique_dates[-1],
+                value=unique_dates[-1],
+            )
+            # Ensure the "From Date" is earlier than or equal to the "To Date"
             if from_date > to_date:
                 st.error("The 'From Date' must be earlier than or equal to the 'To Date'.")
             else:
-        # Filter data based on date range
-                filtered_df = df_sales[(df_sales[date_column] >= pd.Timestamp(from_date)) & (df_sales[date_column] <= pd.Timestamp(to_date))]
-                pivot_sales=pd.pivot_table(filtered_df, index =['ean'],values=['quantity'],aggfunc='sum').reset_index()
+                # Step 3: Filter data based on the selected date range
+                filtered_df = df_sales[
+                    (df_sales['day'] >= pd.Timestamp(from_date)) & 
+                    (df_sales['day'] <= pd.Timestamp(to_date))
+                ]
+                pivot_sales=pd.pivot_table(df_sales[filtered_df], index =['ean'],values=['quantity'],aggfunc='sum').reset_index()
                 df_final = pd.merge(df, pivot_sales, left_on='EAN', right_on='ean', how='left',indicator=True)
                 df_final.drop(columns=['ean','_merge'],inplace=True)
                 df_final.rename(columns={'quantity':'Actual Sales'},inplace=True)
@@ -121,7 +117,7 @@ def processedFile(uploaded_file1,uploaded_file2,uploaded_file3):
 
                 file_path = "Accuracy.csv"
                 df_final2.to_csv(file_path, index=False)
-                st.write(f"All pivot tables saved in {file_path}")
+                st.write(f"Final File saved in {file_path}")
 
 # Provide a download button in Streamlit
                 with open(file_path, "r") as file:
@@ -130,14 +126,19 @@ def processedFile(uploaded_file1,uploaded_file2,uploaded_file3):
                     data=file,
                     file_name="Accuracy.csv",
                     mime="csv",
-                    )
-        else:
-            st.error("The column name entered does not exist in the dataset. Please try again.")
+                )
+
+
+
+
+
+
+
+
         
     else:
         st.info("Please upload the valid CSV and XLSX file")
 
 
-        
 
 processedFile(uploaded_file1,uploaded_file2,uploaded_file3)
