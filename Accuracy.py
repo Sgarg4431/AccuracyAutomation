@@ -58,6 +58,7 @@ def processedFile(uploaded_file1,uploaded_file2,uploaded_file3):
         )
         df_sales=pd.read_excel(uploaded_file2)
         df_sales['day'] = pd.to_datetime(df_sales['day'], errors='coerce')
+        df_sales = df_sales.dropna(subset=['day'])
         unique_dates = sorted(df_sales['day'].dropna().unique())
 
         # Display the available date range
