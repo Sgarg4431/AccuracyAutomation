@@ -128,15 +128,9 @@ def processedFile(uploaded_file1,uploaded_file2,uploaded_file3):
                     file_name="Accuracy.csv",
                     mime="csv",
                 )
+        else:
+            st.info("Please enter From date")
 
-
-
-
-
-
-
-
-        
     else:
         st.info("Please upload the valid CSV and XLSX file")
 
